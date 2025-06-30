@@ -94,6 +94,11 @@ class LogGenerator:
         ]
         pass
 
+    def generate_filename(self, base_name: str = "sample") -> str:
+        """Generate filename with current timestamp"""
+        timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        return f"{base_name}_{timestamp}.log"
+
     def generate_daily_distribution(self, total_lines: int, num_days: int) -> List[int]:
         """Generate realistic daily request distribution with weekday/weekend patterns"""
         base_daily = total_lines // num_days
@@ -193,7 +198,7 @@ class LogGenerator:
 
         return f"{ip} - - {timestamp} {request_line} {status_code} {size} {referrer} {user_agent}"
 
-    def generate_logs(self, num_lines: int, output_file: str):
+    def generate_logs(self, num_lines: int, base_filename: str = "sample"):
         """Generate log file with specified number of lines"""
         print(f"Generating {num_lines:,} log lines...")
 
@@ -201,8 +206,11 @@ class LogGenerator:
         logs_dir = os.path.join("..", "logs")
         os.makedirs(logs_dir, exist_ok=True)
 
-        # Create full path for output file
+        # Generate timestamped filename
+        output_file = self.generate_filename(base_filename)
         full_output_path = os.path.join(logs_dir, output_file)
+
+        print(f"Output file: {output_file}")
 
         # Start from a base date and spread logs over several days
         base_date = datetime.datetime(2020, 9, 1, 0, 0, 0)
@@ -244,12 +252,12 @@ class LogGenerator:
 def main():
     generator = LogGenerator()
     num_lines = 100000
-    output_file = "sample.log"
+    base_filename = "sample"
 
     print("Apache/Nginx Log Generator")
     print("=" * 30)
 
-    # Option to customize
+    # Option to customize number of lines
     try:
         user_input = (
             input(f"Generate {num_lines:,} lines? (y/n) or enter number: ")
@@ -263,13 +271,22 @@ def main():
     except ValueError:
         print("Invalid input, using default...")
 
-    generator.generate_logs(num_lines, output_file)
+    # Option to customize base filename
+    try:
+        filename_input = input(f"Base filename (default: '{base_filename}'): ").strip()
+        if filename_input:
+            base_filename = filename_input
+    except:
+        print("Using default filename...")
+
+    generator.generate_logs(num_lines, base_filename)
 
     print(f"\nTo generate larger files:")
     print(f"  Small test: 10,000 lines (~1.5 MB)")
     print(f"  Medium: 100,000 lines (~15 MB)")
     print(f"  Large: 1,000,000 lines (~150 MB)")
     print(f"  Very large: 10,000,000 lines (~1.5 GB)")
+    print(f"\nFiles will be saved as: {base_filename}_YYYY_MM_DD_HH_MM_SS.log")
 
 
 if __name__ == "__main__":
