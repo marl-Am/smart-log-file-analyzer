@@ -33,3 +33,24 @@ def group_by_day(logs):
 
 def parse_datetime(dt_str):
     return datetime.strptime(dt_str.split(" ")[0], "%d/%b/%Y:%H:%M:%S")
+
+def classify_user_agents(logs):
+    bots = defaultdict(int)
+    browsers = defaultdict(int)
+    unknown = defaultdict(int)
+
+    for log in logs:
+        user_agent = log.get("user_agent", "").lower()
+
+        if "bot" in user_agent or "spider" in user_agent or "crawler" in user_agent:
+            bots[user_agent]+=1
+        elif "mozilla" in user_agent or "chrome" in user_agent or "safari" in user_agent:
+            browsers[user_agent]+=1
+        else:
+            unknown[user_agent]+=1
+
+    return {
+        "bots": dict(bots),
+        "browsers": dict(browsers),
+        "unknown": dict(unknown)
+    }

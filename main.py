@@ -2,6 +2,7 @@
 from logs.loader import load_logs
 from reports.report_generator import generate_report
 from utils.analyzer import (
+    classify_user_agents,
     get_top_ips,
     get_top_urls,
     get_status_distribution,
@@ -47,4 +48,25 @@ if __name__ == "__main__":
     # for day in sorted(day_counts):
     #     print(f"{day}: {day_counts[day]}")
 
-    generate_report(top_ips, top_urls, status_distribution, hour_counts, day_counts)
+    user_agent_classes = classify_user_agents(logs)
+
+    # print("\nTop Bots:")
+    # for agent, count in sorted(user_agent_classes["bots"].items(), key=lambda x: -x[1])[:5]:
+    #     print(f"- {agent}:  {count}")
+
+    # print("\nTop Browsers:")
+    # for agent, count in sorted(user_agent_classes["browsers"].items(), key=lambda x: -x[1])[:5]:
+    #     print(f"- {agent}: {count}")
+
+    # print("\nUnknown User-Agents:")
+    # for agent, count in sorted(user_agent_classes["unknown"].items(), key=lambda x: -x[1])[:5]:
+    #     print(f"- {agent}: {count}")
+
+    generate_report(
+        top_ips,
+        top_urls,
+        status_distribution,
+        hour_counts,
+        day_counts,
+        user_agent_classes,
+    )

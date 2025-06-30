@@ -24,6 +24,17 @@ def format_time_series(title: str, data: Dict[str, int]) -> str:
         lines.append(f"- `{key}`: **{data[key]}**")
     return "\n".join(lines)
 
+def format_user_agents(title: str, data: Dict[str, int]) -> str:
+    lines = [f"### {title}"]
+    top_agents = sorted(data.items(), key=lambda x: -x[1])[:5]
+    for agent, count in top_agents:
+        lines.append(
+            f"- `{agent[:80]}...`: **{count}**"
+            if len(agent) > 80
+            else f"- `{agent}`: **{count}**"
+        )
+    return "\n".join(lines)
+
 
 def generate_report(
     top_ips: List[Tuple[str, int]],
@@ -31,6 +42,7 @@ def generate_report(
     status_distribution: Dict[str, int],
     hour_counts: Dict[str, int],
     day_counts: Dict[str, int],
+    user_agent_classes: Dict[str, int],
     to_file: bool = True
 ):
     now = datetime.now()
@@ -42,12 +54,15 @@ def generate_report(
             format_section("Top URLs", top_urls),
             format_status_section(status_distribution),
             format_time_series("Hourly Request Volume", hour_counts),
-            format_time_series("Daily Request Volume", day_counts)
+            format_time_series("Daily Request Volume", day_counts),
+            format_user_agents("Top Bots", user_agent_classes["bots"]),
+            format_user_agents("Top Browsers", user_agent_classes["browsers"]),
+            format_user_agents("Unknown Agents", user_agent_classes["unknown"]),
         ]
     )
 
     report = header + body
-    # print(report)
+    
     # Save to root-level /reports/ folder
     if to_file:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
