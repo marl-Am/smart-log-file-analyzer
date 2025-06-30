@@ -45,9 +45,9 @@ class LogGenerator:
             ("/favicon.ico", 15),
             ("/robots.txt", 3),
             ("/sitemap.xml", 2),
-            ("/2020/03/14/vizualizace-vyvoj-covid-19-v-cesku-powerbi/", 1),
-            ("/2020/04/15/machine-learning-tutorial/", 1),
-            ("/2020/05/20/web-development-best-practices/", 1),
+            ("/2025/01/14/new-year-updates/", 1),
+            ("/2025/02/15/machine-learning-tutorial/", 1),
+            ("/2025/03/20/web-development-best-practices/", 1),
             ("/assets/css/style.css", 5),
             ("/assets/js/main.js", 4),
             ("/images/logo.png", 3),
@@ -98,6 +98,19 @@ class LogGenerator:
         """Generate filename with current timestamp"""
         timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         return f"{base_name}_{timestamp}.log"
+
+    def get_date_range(self, num_days: int = None) -> tuple:
+        """Get appropriate date range - from start of year to today"""
+        today = datetime.datetime.now()
+
+        if num_days:
+            # If specific number of days requested, go back that many days
+            start_date = today - datetime.timedelta(days=num_days - 1)
+        else:
+            # Default: from January 1st of current year to today
+            start_date = datetime.datetime(today.year, 1, 1, 0, 0, 0)
+
+        return start_date, today
 
     def generate_daily_distribution(self, total_lines: int, num_days: int) -> List[int]:
         """Generate realistic daily request distribution with weekday/weekend patterns"""
