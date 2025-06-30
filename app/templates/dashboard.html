@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Log Analyzer Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f7fa; }
+        h1 { color: #333; }
+        .chart { margin-bottom: 40px; }
+    </style>
+</head>
+<body>
+    <h1>📊 Smart Log Analyzer Dashboard</h1>
+
+    <div class="chart">
+        {{ hourly_chart | safe }}
+    </div>
+
+    <div class="chart">
+        {{ daily_chart | safe }}
+    </div>
+
+    <div class="chart">
+        {{ status_chart | safe }}
+    </div>
+</body>
+</html>

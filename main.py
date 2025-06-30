@@ -1,4 +1,7 @@
 # Entry point
+import sys
+
+# Core CLI functions
 from logs.loader import load_logs
 from reports.report_generator import generate_report
 from utils.analyzer import (
@@ -10,8 +13,11 @@ from utils.analyzer import (
     group_by_day,
 )
 
+# Optional Flask App
+from app import create_app
 
-if __name__ == "__main__":
+
+def run_cli():
     logs = load_logs("logs/sample.log")
 
     top_ips = get_top_ips(logs)
@@ -29,3 +35,15 @@ if __name__ == "__main__":
         day_counts,
         user_agent_classes,
     )
+
+
+if __name__ == "__main__":
+    # Usage:
+    # python main.py           → CLI mode
+    # python main.py web       → Start Flask dashboard
+
+    if len(sys.argv) > 1 and sys.argv[1] == "web":
+        app = create_app()
+        app.run(debug=True)
+    else:
+        run_cli()

@@ -5,6 +5,7 @@ import datetime
 import os
 from typing import List
 
+
 class LogGenerator:
     def __init__(self):
         # Realistic IP address ranges (mix of real and private)
@@ -93,6 +94,45 @@ class LogGenerator:
         ]
         pass
 
+    def generate_daily_distribution(self, total_lines: int, num_days: int) -> List[int]:
+        """Generate realistic daily request distribution with weekday/weekend patterns"""
+        base_daily = total_lines // num_days
+        daily_requests = []
+
+        for day in range(num_days):
+            # Create realistic variations:
+            # - Weekdays: 80-120% of base
+            # - Weekends: 60-90% of base
+            # - Random spikes: occasional 150-200% days
+
+            day_of_week = day % 7
+            is_weekend = day_of_week in [5, 6]  # Saturday, Sunday
+
+            if random.random() < 0.1:  # 10% chance of spike day
+                multiplier = random.uniform(1.5, 2.0)
+            elif is_weekend:
+                multiplier = random.uniform(0.6, 0.9)
+            else:
+                multiplier = random.uniform(0.8, 1.2)
+
+            daily_count = int(base_daily * multiplier)
+            daily_requests.append(daily_count)
+
+        # Adjust to ensure total equals target
+        current_total = sum(daily_requests)
+        difference = total_lines - current_total
+
+        # Distribute the difference randomly across days
+        for _ in range(abs(difference)):
+            day_idx = random.randint(0, num_days - 1)
+            if difference > 0:
+                daily_requests[day_idx] += 1
+            else:
+                if daily_requests[day_idx] > 0:
+                    daily_requests[day_idx] -= 1
+
+        return daily_requests
+
     def weighted_choice(self, choices: List[tuple]) -> str:
         """Select item based on weights"""
         total = sum(weight for _, weight in choices)
@@ -157,39 +197,54 @@ class LogGenerator:
         """Generate log file with specified number of lines"""
         print(f"Generating {num_lines:,} log lines...")
 
-        # Create sample_data directory if it doesn't exist
-        # os.makedirs("sample_data", exist_ok=True)
+        # Create logs directory if it doesn't exist
+        logs_dir = os.path.join("..", "logs")
+        os.makedirs(logs_dir, exist_ok=True)
+
+        # Create full path for output file
+        full_output_path = os.path.join(logs_dir, output_file)
 
         # Start from a base date and spread logs over several days
         base_date = datetime.datetime(2020, 9, 1, 0, 0, 0)
 
-        with open(output_file, "w") as f:
-            for i in range(num_lines):
-                # Spread logs across multiple days
-                day_offset = i // (num_lines // 30)  # Spread across ~30 days
-                current_base = base_date + datetime.timedelta(days=day_offset)
+        # Generate realistic daily distributions
+        num_days = 30
+        daily_requests = self.generate_daily_distribution(num_lines, num_days)
 
-                log_line = self.generate_log_line(current_base)
-                f.write(log_line + "\n")
+        print(f"Distributing logs across {num_days} days...")
+        print(
+            f"Daily requests range: {min(daily_requests):,} - {max(daily_requests):,}"
+        )
 
-                # Progress indicator
-                if (i + 1) % 10000 == 0:
-                    print(f"Generated {i + 1:,} lines...")
+        with open(full_output_path, "w") as f:
+            line_count = 0
+            for day in range(num_days):
+                current_date = base_date + datetime.timedelta(days=day)
+                requests_today = daily_requests[day]
+
+                for _ in range(requests_today):
+                    log_line = self.generate_log_line(current_date)
+                    f.write(log_line + "\n")
+                    line_count += 1
+
+                    # Progress indicator
+                    if line_count % 10000 == 0:
+                        print(f"Generated {line_count:,} lines...")
 
         # Calculate file size
-        file_size = os.path.getsize(output_file)
+        file_size = os.path.getsize(full_output_path)
         size_mb = file_size / (1024 * 1024)
 
         print(f"\nLog file generated successfully!")
-        print(f"File: {output_file}")
-        print(f"Lines: {num_lines:,}")
+        print(f"File: {full_output_path}")
+        print(f"Lines: {line_count:,}")
         print(f"Size: {size_mb:.2f} MB")
 
 
 def main():
     generator = LogGenerator()
     num_lines = 100000
-    output_file = "sample_server_log_data.txt"
+    output_file = "sample.log"
 
     print("Apache/Nginx Log Generator")
     print("=" * 30)
