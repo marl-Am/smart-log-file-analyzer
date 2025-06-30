@@ -1,75 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Smart Log Analyzer Dashboard</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        background: #f5f7fa;
-      }
-      h1 {
-        color: #333;
-      }
-      .chart {
-        margin-bottom: 40px;
-      }
-      form {
-        margin-bottom: 1em;
-      }
-      select {
-        padding: 5px;
-        font-size: 1em;
-      }
-      .error {
-        color: #d32f2f;
-        background: #ffebee;
-        padding: 10px;
-        border-radius: 4px;
-        margin: 20px 0;
-      }
-      .no-data {
-        color: #666;
-        font-style: italic;
-        text-align: center;
-        padding: 40px;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>📊 Smart Log Analyzer Dashboard</h1>
-    
-    {% if error %}
-      <div class="error">⚠️ {{ error }}</div>
-    {% endif %}
-    
-    {% if log_files %}
-    <form method="get">
-      <label for="log-select">🗂️ Select Log File:</label>
-      <select name="log" id="log-select" onchange="this.form.submit()">
-          {% for file in log_files %}
-              <option value="{{ file }}" {% if file == selected_file %}selected{% endif %}>{{ file }}</option>
-          {% endfor %}
-      </select>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Log Analyzer Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f7fa;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .chart {
+      margin-bottom: 40px;
+    }
+
+    .filters {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    select {
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+    }
+
+    label {
+      font-weight: 500;
+      color: #555;
+    }
+
+    .stats {
+      background: #e3f2fd;
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #1565c0;
+    }
+
+    .error {
+      color: #d32f2f;
+      background: #ffebee;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+
+    .no-data {
+      color: #666;
+      font-style: italic;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .clear-filters {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .clear-filters:hover {
+      background: #d32f2f;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>📊 Smart Log Analyzer Dashboard</h1>
+
+  {% if error %}
+  <div class="error">⚠️ {{ error }}</div>
+  {% endif %}
+
+  {% if log_files %}
+
+  <div class="filters">
+    <form method="get" id="filterForm">
+      <!-- File Selection -->
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="log-select">🗂️ Log File:</label>
+          <select name="log" id="log-select" onchange="this.form.submit()">
+            {% for file in log_files %}
+            <option value="{{ file }}" {% if file==selected_file %}selected{% endif %}>{{ file }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="method-select">🔧 HTTP Method:</label>
+          <select name="method" id="method-select" onchange="this.form.submit()">
+            <option value="all" {% if selected_method=='all' %}selected{% endif %}>All Methods</option>
+            {% for method in available_methods %}
+            <option value="{{ method }}" {% if method==selected_method %}selected{% endif %}>{{ method }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="status-select">📊 Status Code:</label>
+          <select name="status" id="status-select" onchange="this.form.submit()">
+            <option value="all" {% if selected_status=='all' %}selected{% endif %}>All Status Codes</option>
+            {% for status in available_status_codes %}
+            <option value="{{ status }}" {% if status|string==selected_status %}selected{% endif %}>{{ status }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {% if selected_method != 'all' or selected_status != 'all' %}
+        <button type="button" class="clear-filters" onclick="clearFilters()">Clear Filters</button>
+        {% endif %}
+      </div>
+
+      <!-- Hidden field to preserve log selection when clearing filters -->
+      <input type="hidden" name="log" value="{{ selected_file }}">
     </form>
-    
-    <h3>📄 Viewing: {{ selected_file }}</h3>
-    
-    {% if not error %}
-      {% if hourly_chart %}
-        <div class="chart">{{ hourly_chart | safe }}</div>
-        <div class="chart">{{ daily_chart | safe }}</div>
-        <div class="chart">{{ status_chart | safe }}</div>
-      {% else %}
-        <div class="no-data">📭 This log file appears to be empty or contains no valid log entries.</div>
+
+    <!-- Stats -->
+    {% if total_logs is defined and filtered_count is defined %}
+    <div class="stats">
+      📈 Showing {{ "{:,}".format(filtered_count) }} of {{ "{:,}".format(total_logs) }} log entries
+      {% if selected_method != 'all' or selected_status != 'all' %}
+      (filtered)
       {% endif %}
+    </div>
     {% endif %}
-    
+  </div>
+
+  <h2>📄 Viewing: {{ selected_file }}</h2>
+
+  {% if not error %}
+  {% if hourly_chart %}
+  <div class="chart">{{ hourly_chart | safe }}</div>
+  <div class="chart">{{ daily_chart | safe }}</div>
+  <div class="chart">{{ status_chart | safe }}</div>
+  {% else %}
+  <div class="no-data">
+    {% if selected_method != 'all' or selected_status != 'all' %}
+    🔍 No log entries match the selected filters.
     {% else %}
-      <div class="no-data">⚠️ No log files available to display.</div>
+    📭 This log file appears to be empty or contains no valid log entries.
     {% endif %}
-    
-  </body>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  {% else %}
+  <div class="no-data">No log files available to display.</div>
+  {% endif %}
+
+  <script>
+    function clearFilters() {
+      // Get current log file
+      const logSelect = document.getElementById('log-select');
+      const currentLog = logSelect.value;
+
+      // Redirect with only the log parameter
+      window.location.href = `?log=${encodeURIComponent(currentLog)}`;
+    }
+  </script>
+
+</body>
+
 </html>
