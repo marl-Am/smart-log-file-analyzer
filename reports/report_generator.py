@@ -18,12 +18,20 @@ def format_status_section(status_counts: Dict[str, int]) -> str:
         lines.append(f"- `{status}`: **{count}**")
     return "\n".join(lines)
 
+def format_time_series(title: str, data: Dict[str, int]) -> str:
+    lines = [f"### {title}"]
+    for key in sorted(data):
+        lines.append(f"- `{key}`: **{data[key]}**")
+    return "\n".join(lines)
+
 
 def generate_report(
     top_ips: List[Tuple[str, int]],
     top_urls: List[Tuple[str, int]],
     status_distribution: Dict[str, int],
-    to_file: bool = True,
+    hour_counts: Dict[str, int],
+    day_counts: Dict[str, int],
+    to_file: bool = True
 ):
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -33,11 +41,13 @@ def generate_report(
             format_section("Top IPs", top_ips),
             format_section("Top URLs", top_urls),
             format_status_section(status_distribution),
+            format_time_series("Hourly Request Volume", hour_counts),
+            format_time_series("Daily Request Volume", day_counts)
         ]
     )
 
     report = header + body
-    print(report)
+    # print(report)
     # Save to root-level /reports/ folder
     if to_file:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
