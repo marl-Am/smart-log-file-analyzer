@@ -1,28 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Smart Log Analyzer Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f7fa; }
-        h1 { color: #333; }
-        .chart { margin-bottom: 40px; }
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #f5f7fa;
+      }
+      h1 {
+        color: #333;
+      }
+      .chart {
+        margin-bottom: 40px;
+      }
+      form {
+        margin-bottom: 1em;
+      }
+      select {
+        padding: 5px;
+        font-size: 1em;
+      }
+      .error {
+        color: #d32f2f;
+        background: #ffebee;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 20px 0;
+      }
+      .no-data {
+        color: #666;
+        font-style: italic;
+        text-align: center;
+        padding: 40px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>📊 Smart Log Analyzer Dashboard</h1>
-
-    <div class="chart">
-        {{ hourly_chart | safe }}
-    </div>
-
-    <div class="chart">
-        {{ daily_chart | safe }}
-    </div>
-
-    <div class="chart">
-        {{ status_chart | safe }}
-    </div>
-</body>
+    
+    {% if error %}
+      <div class="error">⚠️ {{ error }}</div>
+    {% endif %}
+    
+    {% if log_files %}
+    <form method="get">
+      <label for="log-select">🗂️ Select Log File:</label>
+      <select name="log" id="log-select" onchange="this.form.submit()">
+          {% for file in log_files %}
+              <option value="{{ file }}" {% if file == selected_file %}selected{% endif %}>{{ file }}</option>
+          {% endfor %}
+      </select>
+    </form>
+    
+    <h3>📄 Viewing: {{ selected_file }}</h3>
+    
+    {% if not error %}
+      {% if hourly_chart %}
+        <div class="chart">{{ hourly_chart | safe }}</div>
+        <div class="chart">{{ daily_chart | safe }}</div>
+        <div class="chart">{{ status_chart | safe }}</div>
+      {% else %}
+        <div class="no-data">📭 This log file appears to be empty or contains no valid log entries.</div>
+      {% endif %}
+    {% endif %}
+    
+    {% else %}
+      <div class="no-data">⚠️ No log files available to display.</div>
+    {% endif %}
+    
+  </body>
 </html>
