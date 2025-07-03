@@ -17,3 +17,14 @@ Example:
 Filtering By Status Code: 404
 ![404](assets/404.png)
 
+
+---
+
+### 🔧 Testing with Sample Logs
+
+To test the analyzer without using real server logs, you can generate synthetic log files in the correct Apache Combined Log Format.
+
+Run the script in `sample_data/generate_sample_logs.py` to create a demo log file for analysis:
+
+```bash
+python sample_data/generate_sample_logs.py
