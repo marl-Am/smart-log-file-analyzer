@@ -52,7 +52,7 @@ class LogGenerator:
             ("/assets/js/main.js", 4),
             ("/images/logo.png", 3),
             ("/admin/login", 1),
-            ("/wp-admin/", 1),  # Common attack target
+            ("/wp-admin/", 1),  # Apparently common attack target
         ]
 
         # HTTP status codes with realistic distribution

@@ -1,5 +1,5 @@
 # smart-log-file-analyzer
-A Python-based tool that analyzes massive server log files to identify patterns, group data, extract insights, and generate human-readable reports.
+Built a Python-based tool that analyzes massive server log files in Apache Combined Log Format to identify patterns, group data, extract actionable insights (e.g., most common IPs, popular endpoints, frequent status codes), and generate clean, human-readable reports in web or PDF format.
 
 Log data format: 
 ```
@@ -16,3 +16,4 @@ Example:
 ![Status](assets/Status.png)
 Filtering By Status Code: 404
 ![404](assets/404.png)
+
