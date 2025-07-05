@@ -49,6 +49,7 @@ def run_cli(log_path=None):
         hour_counts,
         day_counts,
         user_agent_classes,
+        log_filename=log_path,  # Pass the log file path
     )
 
 

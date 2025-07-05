@@ -1,8 +1,18 @@
 from flask import Blueprint, render_template, request, abort
-from utils.analyzer import group_by_hour, group_by_day, get_status_distribution
+from utils.analyzer import (
+    group_by_hour,
+    group_by_day,
+    get_status_distribution,
+    classify_user_agents,
+    get_top_ips,
+    get_top_urls,
+)
 from logs.loader import load_logs
 from app.graph_utils import plot_hourly_requests, plot_daily_requests, plot_status_codes
+from reports.report_generator import generate_report
+from utils.md_renderer import render_markdown_report
 import os
+import tempfile
 from datetime import datetime, date
 
 bp = Blueprint("dashboard", __name__)
@@ -154,6 +164,74 @@ def get_date_range_info(logs, start_date, end_date):
     return " | ".join(info_parts)
 
 
+def generate_markdown_report(logs, log_filename):
+    """Generate markdown report from logs and return rendered HTML"""
+    if not logs:
+        return None
+
+    try:
+        # Get all the analytics data
+        top_ips = get_top_ips(logs)
+        top_urls = get_top_urls(logs)
+        status_distribution = get_status_distribution(logs)
+        hour_counts = group_by_hour(logs)
+        day_counts = group_by_day(logs)
+        user_agent_classes = classify_user_agents(logs)
+
+        # Create a temporary file to store the markdown report
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as temp_file:
+            temp_filename = temp_file.name
+
+            # Generate the report content without saving to the reports directory
+            from reports.report_generator import (
+                format_section,
+                format_status_section,
+                format_time_series,
+                format_user_agents,
+            )
+
+            now = datetime.now()
+            timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+
+            # Create header with log filename
+            log_info = f" - {os.path.basename(log_filename)}" if log_filename else ""
+            header = f"# Log Analyzer Report{log_info}\nGenerated on: `{timestamp}`\n\n"
+
+            body = "\n\n".join(
+                [
+                    format_section("Top IPs", top_ips),
+                    format_section("Top URLs", top_urls),
+                    format_status_section(status_distribution),
+                    format_time_series("Hourly Request Volume", hour_counts),
+                    format_time_series("Daily Request Volume", day_counts),
+                    format_user_agents("Top Bots", user_agent_classes.get("bots", {})),
+                    format_user_agents(
+                        "Top Browsers", user_agent_classes.get("browsers", {})
+                    ),
+                    format_user_agents(
+                        "Unknown Agents", user_agent_classes.get("unknown", {})
+                    ),
+                ]
+            )
+
+            report_content = header + body
+            temp_file.write(report_content)
+
+        # Render the markdown to HTML
+        html_content = render_markdown_report(temp_filename)
+
+        # Clean up the temporary file
+        os.unlink(temp_filename)
+
+        return html_content
+
+    except Exception as e:
+        print(f"Error generating markdown report: {e}")
+        return None
+
+
 @bp.route("/", methods=["GET"])
 def dashboard():
     log_dir = "logs"
@@ -227,6 +305,7 @@ def dashboard():
 
         # Initialize charts as None
         hourly_chart = daily_chart = status_chart = None
+        report_html = None
 
         # Only generate charts if we have log data
         if filtered_logs:
@@ -238,6 +317,9 @@ def dashboard():
             hourly_chart = plot_hourly_requests(hourly_data)
             daily_chart = plot_daily_requests(daily_data)
             status_chart = plot_status_codes(status_data)
+
+            # Generate markdown report
+            report_html = generate_markdown_report(filtered_logs, selected_file)
 
         # Calculate filter stats
         total_logs = len(logs) if logs else 0
@@ -270,4 +352,6 @@ def dashboard():
         # Stats
         total_logs=total_logs,
         filtered_count=filtered_count,
+        # Markdown report
+        report_html=report_html,
     )

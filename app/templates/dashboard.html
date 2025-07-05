@@ -5,82 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Log Analyzer Dashboard</title>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f5f7fa;
-    }
-    h1 {
-      color: #333;
-    }
-    .chart {
-      margin-bottom: 40px;
-    }
-    .filters {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-    .filter-row {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
-    }
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    select {
-      padding: 8px 12px;
-      font-size: 14px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: white;
-    }
-    label {
-      font-weight: 500;
-      color: #555;
-    }
-    .stats {
-      background: #e3f2fd;
-      padding: 10px 15px;
-      border-radius: 4px;
-      font-size: 14px;
-      color: #1565c0;
-    }
-    .error {
-      color: #d32f2f;
-      background: #ffebee;
-      padding: 10px;
-      border-radius: 4px;
-      margin: 20px 0;
-    }
-    .no-data {
-      color: #666;
-      font-style: italic;
-      text-align: center;
-      padding: 40px;
-    }
-    .clear-filters {
-      background: #f44336;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .clear-filters:hover {
-      background: #d32f2f;
-    }
-  </style>
 </head>
 
 <body>
@@ -170,6 +96,16 @@
   {% else %}
   <div class="no-data">No log files available to display.</div>
   {% endif %}
+
+  {% if report_html %}
+  <h2>📄 Full Report</h2>
+  <div class="markdown-report">
+    <div class="markdown-report-content">
+      {{ report_html | safe }}
+    </div>
+  </div>
+  {% endif %}
+
 
   <script>
     function clearFilters() {

@@ -18,11 +18,13 @@ def format_status_section(status_counts: Dict[str, int]) -> str:
         lines.append(f"- `{status}`: **{count}**")
     return "\n".join(lines)
 
+
 def format_time_series(title: str, data: Dict[str, int]) -> str:
     lines = [f"### {title}"]
     for key in sorted(data):
         lines.append(f"- `{key}`: **{data[key]}**")
     return "\n".join(lines)
+
 
 def format_user_agents(title: str, data: Dict[str, int]) -> str:
     lines = [f"### {title}"]
@@ -43,11 +45,16 @@ def generate_report(
     hour_counts: Dict[str, int],
     day_counts: Dict[str, int],
     user_agent_classes: Dict[str, int],
-    to_file: bool = True
+    log_filename: str = None,
+    to_file: bool = True,
 ):
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
-    header = f"# smart Log Analyzer Report\nGenerated on: `{timestamp}`\n\n"
+
+    # Create header with log filename if provided
+    log_info = f" - {log_filename}" if log_filename else ""
+    header = f"# Log Analyzer Report{log_info}\nGenerated on: `{timestamp}`\n\n"
+
     body = "\n\n".join(
         [
             format_section("Top IPs", top_ips),
@@ -62,15 +69,27 @@ def generate_report(
     )
 
     report = header + body
-    
+
     # Save to root-level /reports/ folder
     if to_file:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         reports_dir = os.path.join(base_dir, "reports")
         os.makedirs(reports_dir, exist_ok=True)
-        filename = os.path.join(reports_dir, f"report_{now.strftime('%Y%m%d_%H%M%S')}.md")
+
+        # Generate filename based on log file name if provided
+        if log_filename:
+            # Extract base name without extension and path
+            log_base = os.path.splitext(os.path.basename(log_filename))[0]
+            filename = os.path.join(
+                reports_dir, f"report_{log_base}_{now.strftime('%Y%m%d_%H%M%S')}.md"
+            )
+        else:
+            filename = os.path.join(
+                reports_dir, f"report_{now.strftime('%Y%m%d_%H%M%S')}.md"
+            )
 
         with open(filename, "w", encoding="utf-8") as f:
             f.write(report)
 
         print(f"\n✅ Report saved to `{filename}`")
+        return filename  # Return the filename for potential use by md_renderer
