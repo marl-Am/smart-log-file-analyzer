@@ -17,6 +17,20 @@ Example:
 Filtering By Status Code: 404
 ![404](assets/404.png)
 
+---
+### Usage
+### CLI Mode
+
+You will be prompted to enter the path to a .log file.
+Or, specify the file directly:
+```
+python main.py logs/your_log_file.log
+```
+
+Web Dashboard
+```
+python main.py web
+```
 
 ---
 
